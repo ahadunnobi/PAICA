@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
-from .routers import webhook, messages, replies, personality, connections
+from .routers import webhook, messages, replies, personality, connections, billing
 
 app = FastAPI(title="Personal AI Communication Agent API")
 
@@ -20,6 +20,7 @@ app.include_router(messages.router, prefix="/api/messages", tags=["Messages"])
 app.include_router(replies.router, prefix="/api/replies", tags=["Replies"])
 app.include_router(personality.router, prefix="/api/personality", tags=["Personality"])
 app.include_router(connections.router, prefix="/api/connections", tags=["Connections"])
+app.include_router(billing.router, prefix="/api/billing", tags=["Billing"])
 
 @app.get("/")
 async def root():

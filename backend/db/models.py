@@ -31,6 +31,18 @@ class PlatformType(str, enum.Enum):
     instagram = "instagram"
     email = "email"
 
+class SubscriptionStatus(str, enum.Enum):
+    trialing = "trialing"
+    active = "active"
+    past_due = "past_due"
+    canceled = "canceled"
+    unpaid = "unpaid"
+
+class PlanTier(str, enum.Enum):
+    free = "free"
+    pro = "pro"
+    elite = "elite"
+
 class PlatformConnection(Base):
     __tablename__ = "platform_connections"
 
@@ -57,6 +69,9 @@ class User(Base):
     contacts = relationship("Contact", back_populates="user")
     personality_profiles = relationship("PersonalityProfile", back_populates="user")
     platform_connections = relationship("PlatformConnection", back_populates="user")
+    subscription = relationship("Subscription", back_populates="user", uselist=False)
+    usage_stats = relationship("UsageStats", back_populates="user")
+    orders = relationship("Order", back_populates="user")
 
 class Contact(Base):
     __tablename__ = "contacts"
@@ -127,3 +142,44 @@ class AIReply(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     message = relationship("Message", back_populates="replies")
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    stripe_customer_id = Column(String, unique=True, index=True)
+    stripe_subscription_id = Column(String, unique=True, index=True)
+    plan_tier = Column(Enum(PlanTier), default=PlanTier.free)
+    status = Column(Enum(SubscriptionStatus), default=SubscriptionStatus.active)
+    current_period_end = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="subscription")
+
+class UsageStats(Base):
+    __tablename__ = "usage_stats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    month_year = Column(String, index=True) # Format: YYYY-MM
+    ai_replies_count = Column(Integer, default=0)
+    extra_credits = Column(Integer, default=0) # Manually purchased top-up credits
+    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="usage_stats")
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    stripe_checkout_id = Column(String, unique=True)
+    amount = Column(Integer) # In cents
+    currency = Column(String, default="usd")
+    status = Column(String) # complete, expired, open
+    items = Column(JSON) # Detailed description of what was bought
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="orders")

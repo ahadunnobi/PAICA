@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     IMAP_PORT: int = 993
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
+    
+    # Stripe Settings
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_ID_PRO: str = "price_Hobbyist"
+    STRIPE_PRICE_ID_ELITE: str = "price_Professional"
+    
+    FRONTEND_URL: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
