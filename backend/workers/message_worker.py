@@ -8,6 +8,7 @@ from ..db.models import Message, Conversation, Contact, User, PersonalityProfile
 from ..services.context_classifier import context_classifier
 from ..services.personality_engine import personality_engine
 from ..services.safety_filter import safety_filter
+from ..services.billing_service import BillingService
 from sqlalchemy import select
 
 class MessageWorker:
@@ -69,10 +70,15 @@ class MessageWorker:
 
             # 4. Apply Personality & Generate Reply
             # Use default profile
-            result = await db.execute(select(PersonalityProfile).where(PersonalityProfile.user_id == 1, PersonalityProfile.is_default == True))
-            profile = result.scalar_one_or_none()
-            
             if profile:
+                # 4.1 Check Billing/Usage
+                can_gen, reason = await BillingService.can_generate_reply(db, 1) # Assuming user 1 for MVP
+                if not can_gen:
+                    logger.warning(f"Billing limit reached for user 1: {reason}")
+                    # Optionally store a system message or notify user
+                    await db.commit()
+                    return
+
                 suggested_reply = await personality_engine.apply_personality(
                     content, profile, sender_name, classification.get("summary", "")
                 )
@@ -85,9 +91,13 @@ class MessageWorker:
                     message_id=msg.id,
                     suggested_content=suggested_reply,
                     personality_profile_id=profile.id,
-                    status="pending" if not is_safe or safety_filter.is_escalation_required(msg.intent, contact.relationship) else "pending" # Default all to pending for approval in MVP
+                    status="pending" if not is_safe or safety_filter.is_escalation_required(msg.intent, contact.relationship) else "pending"
                 )
                 db.add(reply_draft)
+                await db.flush()
+
+                # 7. Increment Usage
+                await BillingService.increment_usage(db, 1) # Assuming user 1
 
             await db.commit()
             logger.success(f"Processed message from {sender_name}")
