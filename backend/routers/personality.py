@@ -4,7 +4,9 @@ from sqlalchemy import select
 from typing import List
 from ..db.database import get_db
 from ..db.models import PersonalityProfile
+from ..services.personality_engine import personality_engine
 from pydantic import BaseModel
+from typing import List, Dict
 
 router = APIRouter()
 
@@ -36,3 +38,18 @@ async def create_profile(profile_data: ProfileSchema, db: AsyncSession = Depends
     await db.commit()
     await db.refresh(profile)
     return profile
+
+class AnalyzeRequest(BaseModel):
+    text: str
+
+class InterviewRequest(BaseModel):
+    chat_history: List[Dict]
+
+@router.post("/train/analyze")
+async def analyze_style(data: AnalyzeRequest):
+    return await personality_engine.analyze_style_from_text(data.text)
+
+@router.post("/train/interview")
+async def conduct_interview(data: InterviewRequest):
+    next_action = await personality_engine.generate_interview_interaction(data.chat_history)
+    return {"content": next_action}

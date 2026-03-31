@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Save, Plus, Trash2, Edit3, Brain } from 'lucide-react';
+import { Save, Plus, Trash2, Edit3, Brain, Wand2, Sparkles } from 'lucide-react';
+import PersonalityTrainingWizard from './PersonalityTrainingWizard';
 
 const DEFAULT_PROFILES = [
   { id: 1, name: 'Professional', tone: 'Helpful, concise, serious',  samplesCount: 15, isDefault: true  },
@@ -12,12 +13,42 @@ const DEFAULT_PROFILES = [
 export default function PersonalityView() {
   const [profiles, setProfiles] = useState(DEFAULT_PROFILES);
   const [sample, setSample] = useState('');
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const makeDefault = (id: number) =>
     setProfiles((prev) => prev.map((p) => ({ ...p, isDefault: p.id === id })));
 
   const remove = (id: number) =>
     setProfiles((prev) => prev.filter((p) => p.id !== id));
+
+  const handleSaveProfile = async (profileData: any) => {
+    setIsSaving(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/personality/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: profileData.name,
+            tone_rules: profileData.tone_rules,
+            sample_messages: profileData.sample_messages,
+            is_default: profileData.is_default
+        })
+      });
+      const newProfile = await res.json();
+      setProfiles([...profiles, { 
+        id: newProfile.id, 
+        name: newProfile.name, 
+        tone: Object.values(newProfile.tone_rules).join(', ').substring(0, 50) + '...',
+        samplesCount: newProfile.sample_messages.length,
+        isDefault: newProfile.is_default
+      }]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <>
@@ -77,24 +108,42 @@ export default function PersonalityView() {
         </section>
 
         {/* Quick training */}
-        <aside className="card-glass" style={{ padding: '24px', borderRadius: '20px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '12px' }}>Quick Training</h3>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '16px', lineHeight: '1.6' }}>
-            Paste a few of your own past messages here for PAICA to analyze your tone.
+        <aside className="card-glass border border-indigo-500/20 bg-indigo-500/5 relative overflow-hidden" style={{ padding: '24px', borderRadius: '20px' }}>
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Sparkles size={100} className="text-indigo-400" />
+          </div>
+          
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Wand2 size={20} className="text-indigo-400" />
+            AI Persona Lab
+          </h3>
+          <p className="text-sm text-white/50 mb-6 leading-relaxed">
+            Stop manually configuring rules! Let our AI analyze your style or interview you for perfect results.
           </p>
-          <textarea
-            id="training-textarea"
-            value={sample}
-            onChange={(e) => setSample(e.target.value)}
-            rows={6}
-            placeholder={"Example:\n\nHey, how are you? Let's catch up soon!\n\nSounds great, I'll ping you tomorrow morning."}
-            style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', color: 'white', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: '1.6', marginBottom: '14px' }}
-          />
-          <button id="analyze-train-btn" className="primary-button" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px' }}>
-            <Save size={14} /> Analyze & Train
+          
+          <button 
+            id="start-ai-training-btn"
+            onClick={() => setIsWizardOpen(true)}
+            className="primary-button w-full flex items-center justify-center gap-3 py-4 shadow-xl shadow-indigo-500/10"
+          >
+            <Brain size={20} />
+            Personalize with AI
           </button>
+          
+          <div className="mt-8 pt-6 border-t border-white/5">
+             <p className="text-xs text-center text-white/30">
+                Powered by GPT-4 Personality Analyst
+             </p>
+          </div>
         </aside>
       </div>
+
+      {isWizardOpen && (
+        <PersonalityTrainingWizard 
+          onClose={() => setIsWizardOpen(false)} 
+          onSave={handleSaveProfile} 
+        />
+      )}
     </>
   );
 }

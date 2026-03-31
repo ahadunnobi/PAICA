@@ -80,3 +80,7 @@ This will start:
 - **Intelligence**: OpenAI GPT-4o / Context Engines
 - **Database**: PostgreSQL (SQLAlchemy) + Redis (RQ)
 - **Deployment**: Docker Compose
+
+---
+
+🔍 **[Future Roadmap & Plans](file:///c:/projects/PAICA/future_plan.md)**
