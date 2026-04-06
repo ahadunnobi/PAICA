@@ -1,25 +1,26 @@
-# PAICA Future Plan
+# PAICA Future Plan: Mobile-First & On-Device AI
 
-This document outlines the long-term vision and planned features for the Personal AI Communication Agent (PAICA).
+This document outlines the pivot towards a mobile-first, privacy-centric Personal AI Communication Agent.
 
-## Upcoming Integrations
+## 📱 Mobile Application (Priority 1)
+- **Framework**: React Native (Expo) for cross-platform iOS and Android support.
+- **Core Feature**: Unified inbox for Telegram, WhatsApp, and SMS with AI assistance.
+- **Status**: [/] In Progress (Initialization)
 
-### 🧠 Communication Psychology
-- **Objective**: Incorporate principles of communication psychology to enhance the agent's interaction capabilities.
-- **Context**: Detect and adapt to the psychological state of the sender, ensuring responses are empathetic, effective, and contextually aware.
-- **Key Areas to Explore**:
-    - **Empathetic Responses**: Using NVC (Non-Violent Communication) frameworks.
-    - **Tone & Sentiment Adaptation**: Dynamically adjusting the response style based on the conversation's emotional arc.
-    - **Intent Deep-Dive**: Understanding underlying needs versus stated requests.
-    - **Conflict Resolution**: Implementing strategies for de-escalating tense exchanges.
-    - **Persuasion & Influence**: Applying ethical psychological principles (e.g., Cialdini's principles) to message generation.
-- **Status**: [ ] Planned (Note for later implementation)
+## 🧠 On-Device Intelligence (Priority 1)
+- **Model**: **Gemma 2B** (Google) optimized for mobile.
+- **Inference Engine**: **MediaPipe LLM Inference API** (Core ML / NNAPI).
+- **Privacy**: 100% offline processing. No cloud telemetry for message content.
+- **Capabilities**:
+    - Intent detection (Urgent, Casual, Business).
+    - Contextual reply drafting.
+    - Relationship strength analysis.
+- **Status**: [ ] Researching Integration
 
-## Expansion Goals
-- [ ] Add more platform connectors (Slack, Discord, LinkedIn).
-- [ ] Implement advanced style-mimicking based on historical data.
-- [ ] Develop a mobile application for on-the-go approvals.
-- [ ] Integrate advanced multi-modal support (voice-to-voice, image analysis).
+## 🛠️ Upcoming Integrations
+- **Platform Connectors**: Official WhatsApp Business API, Telegram MTProto.
+- **Personality Engine**: Local fine-tuning or few-shot prompting using the user's historical message style.
+- **Voice-to-Voice**: On-device Whisper for transcription and TTS for "Voice Assistant" mode.
 
 ---
-*Note: This plan is dynamic and will be updated as the project evolves.*
+*Note: This plan reflects the pivot from the legacy web/backend architecture to a mobile-first product.*
